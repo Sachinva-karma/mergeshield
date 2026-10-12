@@ -103,6 +103,18 @@ export default function FindingCard({ finding }) {
                     </span>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      {ev.is_changed_line !== undefined && (
+                        ev.is_changed_line ? (
+                          <span style={{ fontSize: '10px', padding: '1px 5px', borderRadius: '3px', backgroundColor: 'var(--diff-add-bg)', color: 'var(--emerald)', fontWeight: 600 }}>
+                            Modified Line
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: '10px', padding: '1px 5px', borderRadius: '3px', backgroundColor: 'var(--surface-secondary)', color: 'var(--text-muted)', fontWeight: 500 }}>
+                            Surrounding Context
+                          </span>
+                        )
+                      )}
+
                       {ev.is_verified_in_diff ? (
                         <span className="evidence-status-pill verified" title="Snippet strictly verified in retrieved diff">
                           <CheckCircle2 size={13} /> Verified in Diff

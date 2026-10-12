@@ -48,19 +48,23 @@ class PRAnalyzerService:
             raw_evidence = f.get("evidence", [])
             evidence_list: List[FileEvidence] = []
 
+            has_unverified_citation = False
             for ev in raw_evidence:
                 file_path = ev.get("file_path", "")
                 snippet = ev.get("snippet", "")
                 line_start = ev.get("line_start")
                 line_end = ev.get("line_end")
 
-                is_verified, verified_snippet = verify_evidence_in_diff(
+                is_verified, is_changed, verified_snippet = verify_evidence_in_diff(
                     file_path=file_path,
                     snippet=snippet,
                     line_start=line_start,
                     line_end=line_end,
                     parsed_files=parsed_files,
                 )
+
+                if not is_verified:
+                    has_unverified_citation = True
 
                 evidence_list.append(
                     FileEvidence(
@@ -69,8 +73,13 @@ class PRAnalyzerService:
                         line_end=line_end,
                         snippet=verified_snippet or snippet,
                         is_verified_in_diff=is_verified,
+                        is_changed_line=is_changed,
                     )
                 )
+
+            uncertainty = f.get("uncertainty", "Context outside this diff was not inspected.")
+            if has_unverified_citation:
+                uncertainty = f"{uncertainty} [CAVEAT: One or more cited code snippets were not grounded in the retrieved diff]."
 
             verified_findings.append(
                 RiskFinding(
@@ -79,7 +88,7 @@ class PRAnalyzerService:
                     severity=f.get("severity", "MEDIUM").upper(),
                     summary=f.get("summary", "Potential issue identified"),
                     explanation=f.get("explanation", ""),
-                    uncertainty=f.get("uncertainty", "Context outside this diff was not inspected."),
+                    uncertainty=uncertainty,
                     evidence=evidence_list,
                     suggested_tests=f.get("suggested_tests", []),
                 )

@@ -29,6 +29,7 @@ class FileEvidence(BaseModel):
     line_end: Optional[int] = None
     snippet: str = Field(..., description="Verbatim code snippet from the diff")
     is_verified_in_diff: bool = Field(True, description="True if snippet was verified against actual diff content")
+    is_changed_line: bool = Field(True, description="True if snippet resides within modified lines (+/-), False if surrounding context")
 
 
 class RiskFinding(BaseModel):

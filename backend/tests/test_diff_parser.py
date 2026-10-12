@@ -18,11 +18,12 @@ def test_parse_unified_diff():
     file_diff = parsed["backend/auth.py"]
     assert len(file_diff.hunks) == 1
     assert any("dev-admin-override" in c for _, c in file_diff.added_lines)
+    assert len(file_diff.context_lines) > 0
 
 
-def test_verify_evidence_found():
+def test_verify_evidence_found_and_changed():
     parsed = parse_unified_diff(SAMPLE_DIFF)
-    is_verified, snippet = verify_evidence_in_diff(
+    is_verified, is_changed, snippet = verify_evidence_in_diff(
         file_path="backend/auth.py",
         snippet='if token == "dev-admin-override": return True',
         line_start=12,
@@ -30,13 +31,29 @@ def test_verify_evidence_found():
         parsed_files=parsed,
     )
     assert is_verified is True
+    assert is_changed is True
     assert "dev-admin-override" in snippet
+
+
+def test_verify_evidence_distinguishes_context_from_changed():
+    parsed = parse_unified_diff(SAMPLE_DIFF)
+    # Context line (unchanged line)
+    is_verified, is_changed, snippet = verify_evidence_in_diff(
+        file_path="backend/auth.py",
+        snippet='return verify_jwt(token)',
+        line_start=13,
+        line_end=13,
+        parsed_files=parsed,
+    )
+    assert is_verified is True
+    assert is_changed is False
+    assert "return verify_jwt(token)" in snippet
 
 
 def test_verify_evidence_hallucination_flagged():
     parsed = parse_unified_diff(SAMPLE_DIFF)
     # File not in diff
-    is_verified, _ = verify_evidence_in_diff(
+    is_verified, is_changed, _ = verify_evidence_in_diff(
         file_path="backend/payments.py",
         snippet="charge_credit_card()",
         line_start=1,
@@ -44,9 +61,10 @@ def test_verify_evidence_hallucination_flagged():
         parsed_files=parsed,
     )
     assert is_verified is False
+    assert is_changed is False
 
     # Snippet not in diff
-    is_verified, _ = verify_evidence_in_diff(
+    is_verified, is_changed, _ = verify_evidence_in_diff(
         file_path="backend/auth.py",
         snippet="eval(user_input)",
         line_start=15,
@@ -54,3 +72,4 @@ def test_verify_evidence_hallucination_flagged():
         parsed_files=parsed,
     )
     assert is_verified is False
+    assert is_changed is False

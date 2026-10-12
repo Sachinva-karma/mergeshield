@@ -18,26 +18,68 @@ class GitHubClientError(Exception):
         self.status_code = status_code
 
 
+import urllib.parse
+
+SAFE_NAME_REGEX = re.compile(r"^[a-zA-Z0-9_.-]+$")
+
+
 def parse_github_pr_url(url: str) -> Tuple[str, str, int]:
     """
-    Validates and parses a public GitHub PR URL.
+    Validates and parses a public GitHub PR URL with strict security guarantees:
+    - Rejects non-HTTP/HTTPS schemes
+    - Rejects host spoofing (e.g. github.com.evil.com) and SSRF attempts
+    - Rejects embedded URL credentials (user:pass@)
+    - Rejects path traversal and custom port overrides
     Returns: (owner, repo, pr_number)
     """
     if not url or not isinstance(url, str):
         raise GitHubClientError("PR URL must be a non-empty string.")
 
     cleaned_url = url.strip()
-    match = GITHUB_PR_REGEX.match(cleaned_url)
-    if not match:
+    try:
+        parsed = urllib.parse.urlparse(cleaned_url)
+    except Exception:
+        raise GitHubClientError("Malformed URL structure.")
+
+    # 1. Scheme check
+    if parsed.scheme.lower() not in ("https", "http"):
+        raise GitHubClientError("Invalid URL scheme. Only https:// and http:// are allowed.")
+
+    # 2. Hostname check (Strict SSRF defense)
+    hostname = (parsed.hostname or "").lower()
+    if hostname not in ("github.com", "www.github.com"):
+        raise GitHubClientError(
+            f"Invalid hostname '{hostname}'. MergeShield only accepts public GitHub URLs on github.com."
+        )
+
+    # 3. Port check
+    if parsed.port not in (None, 80, 443):
+        raise GitHubClientError("Custom port overrides are not permitted for security reasons.")
+
+    # 4. Embedded credentials check
+    if parsed.username or parsed.password:
+        raise GitHubClientError("Embedded credentials in URLs are not permitted.")
+
+    # 5. Path validation
+    path = parsed.path.strip("/")
+    parts = path.split("/")
+    if len(parts) < 4 or parts[2].lower() != "pull":
         raise GitHubClientError(
             "Invalid GitHub PR URL. Expected format: https://github.com/owner/repo/pull/123"
         )
 
-    owner, repo, pr_number_str = match.groups()
+    owner, repo, _, pr_number_str = parts[:4]
+
+    # Verify owner and repo characters (no path traversal)
+    if not SAFE_NAME_REGEX.match(owner) or not SAFE_NAME_REGEX.match(repo) or ".." in owner or ".." in repo:
+        raise GitHubClientError("Invalid repository or owner identifier in URL.")
+
     try:
         pr_number = int(pr_number_str)
+        if pr_number <= 0:
+            raise ValueError()
     except ValueError:
-        raise GitHubClientError("Invalid PR number in URL.")
+        raise GitHubClientError("Invalid PR number in URL. Must be a positive integer.")
 
     return owner, repo, pr_number
 

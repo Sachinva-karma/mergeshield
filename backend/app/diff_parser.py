@@ -1,5 +1,5 @@
 import re
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Tuple
 
 
 class DiffHunk:
@@ -17,6 +17,7 @@ class ParsedFileDiff:
         self.hunks: List[DiffHunk] = []
         self.added_lines: List[Tuple[int, str]] = []  # (new_line_num, line_content)
         self.deleted_lines: List[Tuple[int, str]] = []  # (old_line_num, line_content)
+        self.context_lines: List[Tuple[int, str]] = []  # (new_line_num, line_content)
         self.all_lines: List[str] = []
 
 
@@ -26,6 +27,7 @@ HUNK_HEADER_REGEX = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 def parse_unified_diff(diff_text: str) -> Dict[str, ParsedFileDiff]:
     """
     Parses a unified diff string into a mapping of file_path -> ParsedFileDiff.
+    Categorizes lines into added (+), deleted (-), and context ( ).
     """
     files: Dict[str, ParsedFileDiff] = {}
     current_file: Optional[ParsedFileDiff] = None
@@ -74,6 +76,8 @@ def parse_unified_diff(diff_text: str) -> Dict[str, ParsedFileDiff]:
                 current_file.deleted_lines.append((old_line_ptr, content))
                 old_line_ptr += 1
             elif line.startswith(" "):
+                content = line[1:]
+                current_file.context_lines.append((new_line_ptr, content))
                 new_line_ptr += 1
                 old_line_ptr += 1
 
@@ -86,34 +90,50 @@ def verify_evidence_in_diff(
     line_start: Optional[int],
     line_end: Optional[int],
     parsed_files: Dict[str, ParsedFileDiff],
-) -> Tuple[bool, Optional[str]]:
+) -> Tuple[bool, bool, Optional[str]]:
     """
-    Grounding verification: checks if the cited file and code snippet actually exist in the retrieved diff.
-    Returns: (is_verified, verified_snippet_or_normalized)
+    Grounding verification: checks if the cited file and code snippet exist in the diff.
+    Distinguishes modified lines (+/-) from surrounding context lines ( ).
+    Returns: (is_verified, is_changed_line, verified_snippet)
     """
     if file_path not in parsed_files:
-        # Check case-insensitive or basename fallback
         matching_paths = [p for p in parsed_files.keys() if p.lower() == file_path.lower() or p.endswith(file_path)]
         if not matching_paths:
-            return False, None
+            return False, False, None
         file_path = matching_paths[0]
 
     parsed = parsed_files[file_path]
     clean_snippet = snippet.strip()
     if not clean_snippet:
-        return False, None
+        return False, False, None
 
-    # Check against raw diff lines
-    for raw_line in parsed.all_lines:
-        content = raw_line[1:].strip() if len(raw_line) > 1 else ""
-        if clean_snippet in content or content in clean_snippet:
-            return True, clean_snippet
-
-    # Check multiline matches across added/deleted lines
+    # 1. Check if snippet matches within modified lines (+ / -)
     added_text = "\n".join(c for _, c in parsed.added_lines)
     deleted_text = "\n".join(c for _, c in parsed.deleted_lines)
 
     if clean_snippet in added_text or clean_snippet in deleted_text:
-        return True, clean_snippet
+        return True, True, clean_snippet
 
-    return False, None
+    for _, c in parsed.added_lines + parsed.deleted_lines:
+        c_strip = c.strip()
+        if c_strip and (clean_snippet in c_strip or c_strip in clean_snippet):
+            return True, True, clean_snippet
+
+    # 2. Check if snippet matches within surrounding context lines ( )
+    context_text = "\n".join(c for _, c in parsed.context_lines)
+    if clean_snippet in context_text:
+        return True, False, clean_snippet
+
+    for _, c in parsed.context_lines:
+        c_strip = c.strip()
+        if c_strip and (clean_snippet in c_strip or c_strip in clean_snippet):
+            return True, False, clean_snippet
+
+    # 3. Check across raw unstripped diff lines
+    for raw_line in parsed.all_lines:
+        content = raw_line[1:].strip() if len(raw_line) > 1 else ""
+        if content and (clean_snippet in content or content in clean_snippet):
+            is_changed = raw_line.startswith("+") or raw_line.startswith("-")
+            return True, is_changed, clean_snippet
+
+    return False, False, None

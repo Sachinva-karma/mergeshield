@@ -17,7 +17,7 @@ class Settings(BaseSettings):
 
     # Model Provider: "groq", "openrouter", "together", "openai_compatible"
     MODEL_PROVIDER: str = "groq"
-    MODEL_NAME: str = "openai/gpt-oss-120b"
+    MODEL_NAME: str = "qwen/qwen3.8-27b"
     
     # Provider Keys
     GROQ_API_KEY: Optional[str] = None

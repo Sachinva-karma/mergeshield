@@ -27,11 +27,11 @@ MergeShield ingests a public GitHub Pull Request URL, fetches its live metadata 
 
 | Property | Details |
 | :--- | :--- |
-| **Default Model** | `llama-3.3-70b-versatile` |
-| **Alternative Fast Model** | `llama-3.1-8b-instant` |
+| **Default Model** | `qwen/qwen3.8-27b` |
+| **Alternative Models** | `openai/gpt-oss-120b`, `llama-3.3-70b-versatile` |
 | **Default Hosted Provider** | [Groq Cloud](https://groq.com) |
 | **Alternative Providers** | [OpenRouter](https://openrouter.ai), [Together AI](https://together.ai), or any OpenAI-compatible API (`OPENAI_BASE_URL`) |
-| **Model License** | [Meta Llama 3.3 Community License](https://github.com/meta-llama/llama-models/blob/main/models/llama3_3/LICENSE) (Open Weights) |
+| **Model License** | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) (Open Weights) |
 | **Application License** | [MIT License](LICENSE) (Permissive Open Source) |
 
 ---

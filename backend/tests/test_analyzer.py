@@ -89,3 +89,14 @@ async def test_analyzer_end_to_end_mocked():
     assert len(res.findings) == 1
     assert res.findings[0].evidence[0].is_verified_in_diff is True
     assert res.model_info.model_name == "llama-3.3-70b-versatile"
+
+
+def test_model_license_resolution():
+    from app.config import Settings
+    s = Settings(_env_file=None, MODEL_PROVIDER="groq", MODEL_NAME="qwen/qwen3.8-27b")
+    adapter = ModelAdapter(settings=s)
+    details = adapter.get_provider_details()
+    assert details["model_name"] == "qwen/qwen3.8-27b"
+    assert "Apache 2.0" in details["model_license"]
+    assert "Llama" not in details["model_license"]
+

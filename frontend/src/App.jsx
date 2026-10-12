@@ -54,6 +54,7 @@ export default function App() {
   }, []);
 
   const handleAnalyze = async (prUrl) => {
+    if (loading) return; // Prevent duplicate concurrent submissions
     setLastUrl(prUrl);
     setLoading(true);
     setError(null);

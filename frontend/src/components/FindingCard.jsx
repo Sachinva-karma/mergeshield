@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 
 export default function FindingCard({ finding }) {
+  const [isExpanded, setIsExpanded] = useState(true);
   const [isEvidenceOpen, setIsEvidenceOpen] = useState(true);
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [checkedTests, setCheckedTests] = useState({});
@@ -30,20 +31,49 @@ export default function FindingCard({ finding }) {
 
   return (
     <article className="finding-card-stitch" id={`finding-${finding.id}`}>
-      <div className="finding-card-header">
-        <div className="finding-badge-row">
-          <span className={`badge-severity ${finding.severity}`}>
-            {finding.severity} Risk
-          </span>
-          <span className="badge-category">{finding.category}</span>
-          <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
-            {finding.id}
-          </span>
+      <div
+        className="finding-card-header"
+        onClick={() => setIsExpanded(!isExpanded)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === 'Enter' && setIsExpanded(!isExpanded)}
+        style={{ cursor: 'pointer', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}
+        aria-expanded={isExpanded}
+      >
+        <div style={{ flex: 1 }}>
+          <div className="finding-badge-row">
+            <span className={`badge-severity ${finding.severity}`}>
+              {finding.severity} Risk
+            </span>
+            <span className="badge-category">{finding.category}</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
+              {finding.id}
+            </span>
+          </div>
+          <h3 className="finding-heading">{finding.summary}</h3>
         </div>
-        <h3 className="finding-heading">{finding.summary}</h3>
+
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(!isExpanded);
+          }}
+          aria-label={isExpanded ? "Collapse finding details" : "Expand finding details"}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--text-secondary)',
+            cursor: 'pointer',
+            padding: '4px',
+          }}
+        >
+          {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+        </button>
       </div>
 
-      <div className="finding-card-body">
+      {isExpanded && (
+        <div className="finding-card-body">
         <p className="finding-explanation-text">{finding.explanation}</p>
 
         {finding.uncertainty && (
@@ -186,6 +216,7 @@ export default function FindingCard({ finding }) {
           </div>
         )}
       </div>
+      )}
     </article>
   );
 }

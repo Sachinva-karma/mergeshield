@@ -22,11 +22,12 @@ class ModelAdapter:
         model_name = self.settings.MODEL_NAME
 
         licenses = {
+            "openai/gpt-oss-120b": "Open-Weights / Apache 2.0 (Open Weights)",
+            "openai/gpt-oss-20b": "Open-Weights / Apache 2.0 (Open Weights)",
+            "qwen/qwen3.8-27b": "Apache 2.0 (Open Weights)",
             "llama-3.3-70b-versatile": "Llama 3.3 Community License (Open Weights)",
             "llama-3.1-8b-instant": "Llama 3.1 Community License (Open Weights)",
-            "llama-3.1-70b-versatile": "Llama 3.1 Community License (Open Weights)",
             "mistralai/mistral-7b-instruct": "Apache 2.0 (Open Weights)",
-            "meta-llama/llama-3.3-70b-instruct": "Llama 3.3 Community License (Open Weights)",
         }
         model_license = licenses.get(model_name, "Open-Weight License (Configured Provider)")
 

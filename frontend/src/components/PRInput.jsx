@@ -3,16 +3,16 @@ import { Search, ArrowRight } from 'lucide-react';
 
 const SAMPLE_PRS = [
   {
-    label: 'FastAPI #11000',
-    url: 'https://github.com/tiangolo/fastapi/pull/11000',
+    label: 'FastAPI #11000 (Docs)',
+    url: 'https://github.com/fastapi/fastapi/pull/11000',
   },
   {
-    label: 'Flask #5500',
-    url: 'https://github.com/pallets/flask/pull/5500',
+    label: 'Flask #5918 (Routing Refactor)',
+    url: 'https://github.com/pallets/flask/pull/5918',
   },
   {
-    label: 'React #28000',
-    url: 'https://github.com/facebook/react/pull/28000',
+    label: 'Flask #5660 (Session / sansio)',
+    url: 'https://github.com/pallets/flask/pull/5660',
   },
 ];
 

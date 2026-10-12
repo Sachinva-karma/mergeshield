@@ -17,7 +17,7 @@ class Settings(BaseSettings):
 
     # Model Provider: "groq", "openrouter", "together", "openai_compatible"
     MODEL_PROVIDER: str = "groq"
-    MODEL_NAME: str = "llama-3.3-70b-versatile"
+    MODEL_NAME: str = "openai/gpt-oss-120b"
     
     # Provider Keys
     GROQ_API_KEY: Optional[str] = None
@@ -62,6 +62,8 @@ class Settings(BaseSettings):
         return self.OPENAI_API_KEY or os.environ.get("OPENAI_API_KEY")
 
 
-@lru_cache()
+from dotenv import load_dotenv
+
 def get_settings() -> Settings:
+    load_dotenv(override=True)
     return Settings()

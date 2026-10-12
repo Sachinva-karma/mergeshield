@@ -64,9 +64,19 @@ class GitHubClient:
         Fetches PR metadata, changed files, and bounded diff.
         """
         async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
-            # 1. Fetch PR metadata
             pr_url = f"{self.base_url}/repos/{owner}/{repo}/pulls/{pr_number}"
-            resp = await client.get(pr_url, headers=self._get_headers())
+            try:
+                resp = await client.get(pr_url, headers=self._get_headers())
+            except httpx.TimeoutException:
+                raise GitHubClientError(
+                    "GitHub API request timed out. Please retry in a few moments.",
+                    status_code=504,
+                )
+            except httpx.RequestError as e:
+                raise GitHubClientError(
+                    f"Network error connecting to GitHub API: {str(e)}",
+                    status_code=502,
+                )
 
             if resp.status_code == 404:
                 raise GitHubClientError(
@@ -74,7 +84,6 @@ class GitHubClient:
                     status_code=404,
                 )
             if resp.status_code == 403 or resp.status_code == 429:
-                rate_limit_reset = resp.headers.get("X-RateLimit-Reset")
                 raise GitHubClientError(
                     "GitHub API rate limit exceeded. Provide a GITHUB_TOKEN in your environment to increase limits.",
                     status_code=429,
@@ -104,9 +113,21 @@ class GitHubClient:
             )
 
             # 2. Fetch raw diff
-            diff_resp = await client.get(
-                pr_url, headers=self._get_headers(custom_accept="application/vnd.github.v3.diff")
-            )
+            try:
+                diff_resp = await client.get(
+                    pr_url, headers=self._get_headers(custom_accept="application/vnd.github.v3.diff")
+                )
+            except httpx.TimeoutException:
+                raise GitHubClientError(
+                    "GitHub API timed out while downloading the PR diff.",
+                    status_code=504,
+                )
+            except httpx.RequestError as e:
+                raise GitHubClientError(
+                    f"Network error downloading PR diff: {str(e)}",
+                    status_code=502,
+                )
+
             if diff_resp.status_code != 200:
                 raise GitHubClientError(
                     f"Failed to fetch PR diff ({diff_resp.status_code}).",

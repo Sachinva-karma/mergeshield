@@ -36,3 +36,17 @@ def test_bound_diff_truncation():
     assert summary.truncated is True
     assert summary.total_lines <= client.settings.MAX_DIFF_LINES
     assert "file.py" in summary.files_analyzed
+
+
+@pytest.mark.asyncio
+async def test_github_client_timeout():
+    import httpx
+    from unittest.mock import patch
+
+    client = GitHubClient()
+    with patch("httpx.AsyncClient.get", side_effect=httpx.TimeoutException("Connection timed out")):
+        with pytest.raises(GitHubClientError) as exc_info:
+            await client.fetch_pr_details("owner", "repo", 1)
+        assert exc_info.value.status_code == 504
+        assert "timed out" in exc_info.value.message.lower()
+

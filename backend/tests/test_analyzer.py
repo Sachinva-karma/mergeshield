@@ -9,13 +9,13 @@ from app.schemas import DiffSummary, PRMetadata
 
 @pytest.mark.asyncio
 async def test_analyzer_missing_model_key():
-    # If no key is set for Groq, it should raise ModelProviderError
-    with patch.dict("os.environ", {"GROQ_API_KEY": ""}, clear=True):
-        adapter = ModelAdapter()
-        with pytest.raises(ModelProviderError) as exc_info:
-            await adapter.analyze_diff("Title", "Desc", [], "diff", False)
-        assert exc_info.value.status_code == 503
-        assert "GROQ_API_KEY" in exc_info.value.message
+    from app.config import Settings
+    mock_settings = Settings(_env_file=None, GROQ_API_KEY="")
+    adapter = ModelAdapter(settings=mock_settings)
+    with pytest.raises(ModelProviderError) as exc_info:
+        await adapter.analyze_diff("Title", "Desc", [], "diff", False)
+    assert exc_info.value.status_code == 503
+    assert "GROQ_API_KEY" in exc_info.value.message
 
 
 @pytest.mark.asyncio

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 
 
@@ -58,6 +58,36 @@ class ModelInfo(BaseModel):
     grounding_enforced: bool = True
 
 
+class InterfaceChange(BaseModel):
+    change_type: str = Field(..., description="e.g. added_function, modified_function, removed_function, added_class, added_route, modified_config")
+    name: str = Field(..., description="Name of the function, class, route, or interface")
+    details: Optional[str] = None
+    line_number: Optional[int] = None
+
+
+class FileImpact(BaseModel):
+    file_path: str
+    status: str = Field("modified", description="modified, added, deleted, or renamed")
+    old_path: Optional[str] = None
+    category: str = Field(..., description="API / Contracts, Authentication, Database / Schema, Configuration, Tests, Application Logic, Documentation, or Other")
+    additions: int = 0
+    deletions: int = 0
+    detected_interfaces: List[InterfaceChange] = Field(default_factory=list)
+    associated_finding_ids: List[str] = Field(default_factory=list)
+    potential_downstream_impacts: List[str] = Field(default_factory=list)
+
+
+class ChangeImpactSummary(BaseModel):
+    total_files_analyzed: int
+    category_counts: Dict[str, int] = Field(default_factory=dict)
+    test_coverage_signal: str = Field(..., description="Signal regarding presence or absence of test updates")
+    has_missing_tests_signal: bool = False
+    context_limitation_note: str = Field(
+        default="Context boundary: Downstream callers and repository-wide usages outside this pull request diff were not retrieved. Impact is strictly limited to directly visible diff changes."
+    )
+    files: List[FileImpact] = Field(default_factory=list)
+
+
 class AnalysisResponse(BaseModel):
     pr: PRMetadata
     diff_summary: DiffSummary
@@ -66,3 +96,4 @@ class AnalysisResponse(BaseModel):
     summary_assessment: str
     observed_facts: List[str] = Field(default_factory=list)
     findings: List[RiskFinding] = Field(default_factory=list)
+    change_impact: Optional[ChangeImpactSummary] = None

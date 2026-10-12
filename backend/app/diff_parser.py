@@ -12,8 +12,10 @@ class DiffHunk:
 
 
 class ParsedFileDiff:
-    def __init__(self, file_path: str):
+    def __init__(self, file_path: str, old_path: Optional[str] = None, status: str = "modified"):
         self.file_path = file_path
+        self.old_path = old_path
+        self.status = status  # modified, added, deleted, renamed
         self.hunks: List[DiffHunk] = []
         self.added_lines: List[Tuple[int, str]] = []  # (new_line_num, line_content)
         self.deleted_lines: List[Tuple[int, str]] = []  # (old_line_num, line_content)
@@ -28,6 +30,7 @@ def parse_unified_diff(diff_text: str) -> Dict[str, ParsedFileDiff]:
     """
     Parses a unified diff string into a mapping of file_path -> ParsedFileDiff.
     Categorizes lines into added (+), deleted (-), and context ( ).
+    Tracks file lifecycle status (modified, added, deleted, renamed).
     """
     files: Dict[str, ParsedFileDiff] = {}
     current_file: Optional[ParsedFileDiff] = None
@@ -39,15 +42,39 @@ def parse_unified_diff(diff_text: str) -> Dict[str, ParsedFileDiff]:
         if line.startswith("diff --git "):
             parts = line.split(" ")
             if len(parts) >= 4:
-                path = parts[3]
-                if path.startswith("b/"):
-                    path = path[2:]
-                current_file = ParsedFileDiff(file_path=path)
-                files[path] = current_file
+                old_p = parts[2][2:] if parts[2].startswith("a/") else parts[2]
+                new_p = parts[3][2:] if parts[3].startswith("b/") else parts[3]
+                status = "renamed" if old_p != new_p and old_p != "/dev/null" and new_p != "/dev/null" else "modified"
+                current_file = ParsedFileDiff(
+                    file_path=new_p,
+                    old_path=old_p if status == "renamed" else None,
+                    status=status
+                )
+                files[new_p] = current_file
                 current_hunk = None
             continue
 
         if current_file is None:
+            continue
+
+        if line.startswith("new file mode "):
+            current_file.status = "added"
+            continue
+        if line.startswith("deleted file mode "):
+            current_file.status = "deleted"
+            continue
+        if line.startswith("rename from "):
+            current_file.status = "renamed"
+            current_file.old_path = line.replace("rename from ", "").strip()
+            continue
+        if line.startswith("rename to "):
+            current_file.status = "renamed"
+            continue
+        if line.startswith("--- /dev/null"):
+            current_file.status = "added"
+            continue
+        if line.startswith("+++ /dev/null"):
+            current_file.status = "deleted"
             continue
 
         match = HUNK_HEADER_REGEX.match(line)

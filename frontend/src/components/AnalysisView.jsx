@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import FindingCard from './FindingCard';
 import CleanResult from './CleanResult';
+import ChangeImpactMap from './ChangeImpactMap';
 
 export default function AnalysisView({ analysis, onNewAnalysis }) {
   const [isTransparencyOpen, setIsTransparencyOpen] = useState(false);
@@ -101,6 +102,11 @@ export default function AnalysisView({ analysis, onNewAnalysis }) {
             ))}
           </ul>
         </div>
+      )}
+
+      {/* Change Impact Map */}
+      {analysis.change_impact && (
+        <ChangeImpactMap impact={analysis.change_impact} />
       )}
 
       {/* Findings Section */}

@@ -1,6 +1,7 @@
 from typing import List
 from app.diff_parser import parse_unified_diff, verify_evidence_in_diff
 from app.github_client import GitHubClient, parse_github_pr_url
+from app.impact_analyzer import build_change_impact_summary
 from app.model_adapter import ModelAdapter
 from app.schemas import (
     AnalysisResponse,
@@ -102,6 +103,13 @@ class PRAnalyzerService:
             grounding_enforced=True,
         )
 
+        # 6. Build Change Impact Map
+        change_impact = build_change_impact_summary(
+            parsed_files=parsed_files,
+            findings=verified_findings,
+            diff_summary=diff_summary,
+        )
+
         return AnalysisResponse(
             pr=pr_metadata,
             diff_summary=diff_summary,
@@ -114,4 +122,5 @@ class PRAnalyzerService:
                 f"Target branch: {pr_metadata.base_branch} <- {pr_metadata.head_branch}",
             ]),
             findings=verified_findings,
+            change_impact=change_impact,
         )

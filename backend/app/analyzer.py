@@ -9,6 +9,12 @@ from app.schemas import (
     ModelInfo,
     RiskFinding,
 )
+from app.verification_planner import (
+    assess_evidence_strength,
+    determine_priority,
+    plan_verifications_for_finding,
+    sort_findings_by_priority,
+)
 
 
 class PRAnalyzerService:
@@ -82,18 +88,49 @@ class PRAnalyzerService:
             if has_unverified_citation:
                 uncertainty = f"{uncertainty} [CAVEAT: One or more cited code snippets were not grounded in the retrieved diff]."
 
+            category = f.get("category", "General")
+            severity = f.get("severity", "MEDIUM").upper()
+            summary = f.get("summary", "Potential issue identified")
+            explanation = f.get("explanation", "")
+            raw_tests = f.get("suggested_tests", [])
+
+            # Assess evidence strength & explainable priority
+            evidence_strength = assess_evidence_strength(evidence_list)
+            priority, priority_reasoning = determine_priority(
+                severity=severity,
+                evidence_strength=evidence_strength,
+                category=category,
+                evidence=evidence_list,
+            )
+
+            # Build smart verification plan
+            verification_plan = plan_verifications_for_finding(
+                category=category,
+                summary=summary,
+                explanation=explanation,
+                raw_suggested_tests=raw_tests,
+                evidence=evidence_list,
+            )
+
             verified_findings.append(
                 RiskFinding(
                     id=f.get("id") or f"RISK-{idx + 1}",
-                    category=f.get("category", "General"),
-                    severity=f.get("severity", "MEDIUM").upper(),
-                    summary=f.get("summary", "Potential issue identified"),
-                    explanation=f.get("explanation", ""),
+                    category=category,
+                    severity=severity,
+                    summary=summary,
+                    explanation=explanation,
                     uncertainty=uncertainty,
                     evidence=evidence_list,
-                    suggested_tests=f.get("suggested_tests", []),
+                    suggested_tests=raw_tests,
+                    priority=priority,
+                    priority_reasoning=priority_reasoning,
+                    evidence_strength=evidence_strength,
+                    verification_plan=verification_plan,
                 )
             )
+
+        # Sort findings by Priority (Urgent > High > Normal > Low)
+        verified_findings = sort_findings_by_priority(verified_findings)
 
         provider_info = self.model_adapter.get_provider_details()
         model_info = ModelInfo(

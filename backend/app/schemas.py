@@ -32,6 +32,16 @@ class FileEvidence(BaseModel):
     is_changed_line: bool = Field(True, description="True if snippet resides within modified lines (+/-), False if surrounding context")
 
 
+class VerificationAction(BaseModel):
+    action_type: str = Field(..., description="unit_test | integration_test | api_contract | auth_permission | input_validation | regression | manual_review")
+    what_to_verify: str
+    why_it_matters: str
+    expected_behavior: str
+    suggested_scenario: Optional[str] = None
+    motivating_file: Optional[str] = None
+    is_executed: bool = Field(False, description="Explicitly False: suggested for developer verification, not executed by auditor")
+
+
 class RiskFinding(BaseModel):
     id: str
     category: str = Field(..., description="e.g. Security, Error Handling, Concurrency, Regression, Resource Leak, API Contract")
@@ -41,6 +51,10 @@ class RiskFinding(BaseModel):
     uncertainty: str = Field(..., description="Explicit statement of what is unknown or requires additional repository context")
     evidence: List[FileEvidence]
     suggested_tests: List[str] = Field(default_factory=list, description="Concrete verification tests to confirm or disprove the risk")
+    priority: str = Field("Normal", description="Urgent, High, Normal, or Low")
+    priority_reasoning: Optional[str] = None
+    evidence_strength: str = Field("Verified in Diff", description="Verified in Diff, Plausible (Context Only), or Speculative (Ungrounded)")
+    verification_plan: List[VerificationAction] = Field(default_factory=list)
 
 
 class DiffSummary(BaseModel):

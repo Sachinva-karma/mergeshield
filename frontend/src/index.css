@@ -129,6 +129,7 @@ a:focus-visible {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .workspace-container {
@@ -136,6 +137,8 @@ a:focus-visible {
   width: 100%;
   margin: 0 auto;
   padding: 0 1.5rem;
+  position: relative;
+  z-index: 1;
 }
 
 /* ==========================================================================
@@ -1048,6 +1051,8 @@ a:focus-visible {
   margin-top: auto;
   font-size: 12px;
   color: var(--text-muted);
+  position: relative;
+  z-index: 1;
 }
 
 .footer-inner {
@@ -1457,4 +1462,243 @@ a:focus-visible {
   border-top: 1px dashed var(--border-color);
   line-height: 1.4;
 }
+
+/* ==========================================================================
+   Explainable Risk Prioritization & Verification Planner Styles
+   ========================================================================== */
+
+/* Priority Badges */
+.badge-priority {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+}
+
+.badge-priority.priority-urgent {
+  background-color: var(--error-soft);
+  color: var(--error);
+  border: 1px solid var(--error-border);
+}
+
+.badge-priority.priority-high {
+  background-color: var(--amber-soft);
+  color: var(--amber);
+  border: 1px solid var(--amber-border);
+}
+
+.badge-priority.priority-normal {
+  background-color: var(--primary-soft);
+  color: var(--primary-violet);
+  border: 1px solid var(--primary-soft-border);
+}
+
+.badge-priority.priority-low {
+  background-color: var(--surface-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+/* Evidence Strength Badges */
+.badge-evidence-strength {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.badge-evidence-strength.strength-verified {
+  background-color: var(--emerald-soft);
+  color: var(--emerald);
+  border: 1px solid var(--emerald-border);
+}
+
+.badge-evidence-strength.strength-plausible {
+  background-color: var(--amber-soft);
+  color: var(--amber);
+  border: 1px solid var(--amber-border);
+}
+
+.badge-evidence-strength.strength-speculative {
+  background-color: var(--error-soft);
+  color: var(--error);
+  border: 1px solid var(--error-border);
+}
+
+/* Priority Reasoning Callout */
+.priority-reasoning-callout {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 12px;
+  padding: 0.6rem 0.85rem;
+  border-radius: 6px;
+  background-color: var(--primary-soft);
+  border-left: 3px solid var(--primary-violet);
+  margin-bottom: 0.85rem;
+  line-height: 1.45;
+}
+
+.priority-reasoning-callout .reasoning-label {
+  font-weight: 700;
+  color: var(--primary-violet);
+  flex-shrink: 0;
+}
+
+.priority-reasoning-callout .reasoning-text {
+  color: var(--text-primary);
+}
+
+/* Verification Action Cards */
+.verification-actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.verification-action-card {
+  padding: 0.75rem 0.85rem;
+  border-radius: 6px;
+  background-color: var(--surface);
+  border: 1px solid var(--border-color);
+  transition: border-color 0.15s ease;
+}
+
+.verification-action-card:hover {
+  border-color: var(--primary-soft-border);
+}
+
+.action-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.action-type-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--primary-violet);
+  background-color: var(--primary-soft);
+  border: 1px solid var(--primary-soft-border);
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+}
+
+.action-file-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.action-details-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.4rem;
+  padding-left: 1.5rem;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.action-detail-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.action-detail-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.action-detail-val {
+  color: var(--text-primary);
+}
+
+.action-detail-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  background-color: var(--code-bg);
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  border: 1px solid var(--border-subtle);
+  color: var(--primary-violet);
+}
+
+/* ==========================================================================
+   Theme-Aware Video Background Layer
+   ========================================================================== */
+.video-bg-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  user-select: none;
+  background-color: var(--bg-app);
+}
+
+.video-bg-element {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  opacity: 0.65;
+  transition: opacity 0.4s ease;
+}
+
+.video-bg-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  transition: background 0.3s ease;
+}
+
+/* Light mode overlay: soft light tint preserving pristine text contrast and white card clarity */
+.video-bg-overlay.theme-light {
+  background: linear-gradient(
+    180deg,
+    rgba(248, 250, 252, 0.72) 0%,
+    rgba(248, 250, 252, 0.52) 50%,
+    rgba(248, 250, 252, 0.78) 100%
+  );
+}
+
+/* Dark mode overlay: atmospheric dark tint preserving high-contrast text and deep surfaces */
+.video-bg-overlay.theme-dark {
+  background: linear-gradient(
+    180deg,
+    rgba(16, 17, 22, 0.72) 0%,
+    rgba(16, 17, 22, 0.52) 50%,
+    rgba(16, 17, 22, 0.78) 100%
+  );
+}
+
+/* Accessibility: Hide animated video when prefers-reduced-motion is active */
+@media (prefers-reduced-motion: reduce) {
+  .video-bg-element {
+    display: none !important;
+  }
+}
+
+
 

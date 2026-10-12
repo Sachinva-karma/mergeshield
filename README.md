@@ -44,7 +44,10 @@ Crucially, **every finding must be grounded in diff evidence**: the backend cros
 - **Bounded Diff Ingestion**: Imposes hard byte (200 KB) and line (1,500 lines) bounds to protect against token exhaustion and buffer bloat.
 - **Hosted Open-Weight Reasoning**: Leverages `qwen/qwen3.8-27b` under the **Apache 2.0 License** via Groq Cloud for ultra-fast, reproducible structured JSON analysis.
 - **Deterministic Evidence Grounding**: Validates that cited code snippets and line numbers exist in the modified diff hunks.
-- **Actionable Verification Tests**: Every risk finding provides concrete test cases developers can write to confirm or disprove the concern.
+- **Change Impact Map**: Identifies touched file categories (API, Auth, Config, Database, Tests) and directly visible interface modifications.
+- **Explainable Risk Prioritization**: Separates Potential Severity from Evidence Strength (`Verified in Diff`, `Plausible`, `Speculative`) and explains urgency rationale in plain English.
+- **Smart Verification Planner**: Generates structured unit/integration/manual review test scenarios grounded in the diff without claiming execution.
+- **Reviewer-Ready Report Export**: One-click download of an evidence-backed, sanitized `.md` report for PR comments and audit records.
 - **Google Stitch-Inspired UI**: Responsive, accessible developer interface with light/dark/system theme support, collapsible cards, and one-click diff copying.
 
 ### Known Limitations

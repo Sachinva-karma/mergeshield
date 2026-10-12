@@ -4,11 +4,22 @@ import HeroInitial from './components/HeroInitial';
 import LoadingView from './components/LoadingView';
 import ErrorView from './components/ErrorView';
 import AnalysisView from './components/AnalysisView';
+import VideoBackground from './components/VideoBackground';
 import { fetchHealth, analyzePR } from './api';
 
 export default function App() {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('mergeshield-theme') || 'system';
+  });
+
+  const [effectiveTheme, setEffectiveTheme] = useState(() => {
+    const saved = localStorage.getItem('mergeshield-theme') || 'system';
+    if (saved === 'dark') return 'dark';
+    if (saved === 'light') return 'light';
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'light';
   });
 
   const [health, setHealth] = useState(null);
@@ -27,10 +38,12 @@ export default function App() {
         root.setAttribute('data-theme', 'dark');
         root.classList.add('dark');
         root.classList.remove('light');
+        setEffectiveTheme('dark');
       } else {
         root.setAttribute('data-theme', 'light');
         root.classList.add('light');
         root.classList.remove('dark');
+        setEffectiveTheme('light');
       }
     };
 
@@ -76,6 +89,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <VideoBackground effectiveTheme={effectiveTheme} />
       <Header
         health={health}
         theme={theme}

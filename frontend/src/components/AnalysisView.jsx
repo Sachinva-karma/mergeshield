@@ -10,10 +10,12 @@ import {
   ChevronDown,
   ChevronUp,
   Info,
+  Download,
 } from 'lucide-react';
 import FindingCard from './FindingCard';
 import CleanResult from './CleanResult';
 import ChangeImpactMap from './ChangeImpactMap';
+import { downloadMarkdownReport } from '../utils/reportExporter';
 
 export default function AnalysisView({ analysis, onNewAnalysis }) {
   const [isTransparencyOpen, setIsTransparencyOpen] = useState(false);
@@ -31,16 +33,29 @@ export default function AnalysisView({ analysis, onNewAnalysis }) {
           <span>New URL</span>
         </button>
 
-        <a
-          href={pr.html_url}
-          target="_blank"
-          rel="noreferrer"
-          className="btn-secondary"
-          style={{ textDecoration: 'none' }}
-        >
-          <span>View on GitHub</span>
-          <ExternalLink size={13} />
-        </a>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => downloadMarkdownReport(analysis)}
+            style={{ padding: '0.45rem 0.9rem', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+            title="Download evidence-grounded Markdown audit report"
+          >
+            <Download size={14} />
+            <span>Export Report (.md)</span>
+          </button>
+
+          <a
+            href={pr.html_url}
+            target="_blank"
+            rel="noreferrer"
+            className="btn-secondary"
+            style={{ textDecoration: 'none' }}
+          >
+            <span>View on GitHub</span>
+            <ExternalLink size={13} />
+          </a>
+        </div>
       </div>
 
       {/* PR Metadata Card */}

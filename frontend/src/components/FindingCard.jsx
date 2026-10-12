@@ -42,10 +42,20 @@ export default function FindingCard({ finding }) {
       >
         <div style={{ flex: 1 }}>
           <div className="finding-badge-row">
+            {finding.priority && (
+              <span className={`badge-priority priority-${finding.priority.toLowerCase()}`}>
+                {finding.priority} Priority
+              </span>
+            )}
             <span className={`badge-severity ${finding.severity}`}>
-              {finding.severity} Risk
+              {finding.severity} Severity
             </span>
             <span className="badge-category">{finding.category}</span>
+            {finding.evidence_strength && (
+              <span className={`badge-evidence-strength strength-${finding.evidence_strength.includes('Verified') ? 'verified' : finding.evidence_strength.includes('Plausible') ? 'plausible' : 'speculative'}`}>
+                {finding.evidence_strength}
+              </span>
+            )}
             <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
               {finding.id}
             </span>
@@ -74,6 +84,13 @@ export default function FindingCard({ finding }) {
 
       {isExpanded && (
         <div className="finding-card-body">
+        {finding.priority_reasoning && (
+          <div className="priority-reasoning-callout">
+            <span className="reasoning-label">Prioritization Rationale:</span>
+            <span className="reasoning-text">{finding.priority_reasoning}</span>
+          </div>
+        )}
+
         <p className="finding-explanation-text">{finding.explanation}</p>
 
         {finding.uncertainty && (
@@ -183,36 +200,96 @@ export default function FindingCard({ finding }) {
           </div>
         )}
 
-        {/* Recommended Verification Checklist */}
-        {finding.suggested_tests && finding.suggested_tests.length > 0 && (
+        {/* Smart Verification Planner */}
+        {((finding.verification_plan && finding.verification_plan.length > 0) || (finding.suggested_tests && finding.suggested_tests.length > 0)) && (
           <div className="checklist-card">
-            <h4 className="checklist-title">
-              <CheckSquare size={14} color="var(--primary-violet)" />
-              Recommended Verification Checklist
-            </h4>
-            <ul className="checklist-items">
-              {finding.suggested_tests.map((test, idx) => (
-                <li key={idx} className="checklist-row">
-                  <input
-                    type="checkbox"
-                    id={`test-${finding.id}-${idx}`}
-                    className="checklist-checkbox"
-                    checked={!!checkedTests[idx]}
-                    onChange={() => toggleTest(idx)}
-                  />
-                  <label
-                    htmlFor={`test-${finding.id}-${idx}`}
-                    style={{
-                      cursor: 'pointer',
-                      textDecoration: checkedTests[idx] ? 'line-through' : 'none',
-                      color: checkedTests[idx] ? 'var(--text-muted)' : 'var(--text-secondary)',
-                    }}
-                  >
-                    {test}
-                  </label>
-                </li>
-              ))}
-            </ul>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
+              <h4 className="checklist-title" style={{ marginBottom: 0 }}>
+                <CheckSquare size={14} color="var(--primary-violet)" />
+                Actionable Verification Plan
+              </h4>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                Suggested only • Not executed by auditor
+              </span>
+            </div>
+
+            {finding.verification_plan && finding.verification_plan.length > 0 ? (
+              <div className="verification-actions-list">
+                {finding.verification_plan.map((action, idx) => (
+                  <div key={idx} className="verification-action-card">
+                    <div className="action-card-header">
+                      <span className="action-type-badge">{action.action_type.replace('_', ' ')}</span>
+                      {action.motivating_file && (
+                        <span className="action-file-badge">{action.motivating_file}</span>
+                      )}
+                    </div>
+
+                    <div className="checklist-row" style={{ marginTop: '0.4rem', marginBottom: '0.4rem' }}>
+                      <input
+                        type="checkbox"
+                        id={`test-${finding.id}-${idx}`}
+                        className="checklist-checkbox"
+                        checked={!!checkedTests[idx]}
+                        onChange={() => toggleTest(idx)}
+                      />
+                      <label
+                        htmlFor={`test-${finding.id}-${idx}`}
+                        style={{
+                          cursor: 'pointer',
+                          textDecoration: checkedTests[idx] ? 'line-through' : 'none',
+                          color: checkedTests[idx] ? 'var(--text-muted)' : 'var(--text-primary)',
+                          fontWeight: 500,
+                          fontSize: '13px',
+                        }}
+                      >
+                        {action.what_to_verify}
+                      </label>
+                    </div>
+
+                    <div className="action-details-block">
+                      <div className="action-detail-row">
+                        <span className="action-detail-label">Why it matters:</span>
+                        <span className="action-detail-val">{action.why_it_matters}</span>
+                      </div>
+                      <div className="action-detail-row">
+                        <span className="action-detail-label">Expected behavior:</span>
+                        <span className="action-detail-val">{action.expected_behavior}</span>
+                      </div>
+                      {action.suggested_scenario && (
+                        <div className="action-detail-row">
+                          <span className="action-detail-label">Suggested test:</span>
+                          <code className="action-detail-code">{action.suggested_scenario}</code>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <ul className="checklist-items">
+                {finding.suggested_tests.map((test, idx) => (
+                  <li key={idx} className="checklist-row">
+                    <input
+                      type="checkbox"
+                      id={`test-${finding.id}-${idx}`}
+                      className="checklist-checkbox"
+                      checked={!!checkedTests[idx]}
+                      onChange={() => toggleTest(idx)}
+                    />
+                    <label
+                      htmlFor={`test-${finding.id}-${idx}`}
+                      style={{
+                        cursor: 'pointer',
+                        textDecoration: checkedTests[idx] ? 'line-through' : 'none',
+                        color: checkedTests[idx] ? 'var(--text-muted)' : 'var(--text-secondary)',
+                      }}
+                    >
+                      {test}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
       </div>

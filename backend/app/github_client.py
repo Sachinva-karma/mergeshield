@@ -95,8 +95,9 @@ class GitHubClient:
             "User-Agent": "MergeShield-PR-Auditor/1.0",
             "Accept": custom_accept or "application/vnd.github.v3+json",
         }
-        if self.token:
-            headers["Authorization"] = f"Bearer {self.token}"
+        token = self.token or get_settings().get_github_token()
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
         return headers
 
     async def fetch_pr_details(
